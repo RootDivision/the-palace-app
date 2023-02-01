@@ -1,54 +1,63 @@
+import { useState } from "react";
 import { type NextPage } from "next";
-import Head from "next/head";
 import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
+import clsx from "clsx";
 
 import { api } from "../utils/api";
 
+import ItemModal from "../components/itemModal";
+import Button from "../components/button";
+
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const { data: items, isLoading, refetch } = api.item.getAll.useQuery();
+
+  const { mutate: deleteItem } = api.item.deleteItem.useMutation({
+    onSuccess: async () => {
+      await refetch();
+    },
+  });
+  const { mutate: checkItem } = api.item.checkItem.useMutation({
+    onSuccess: async () => {
+      await refetch();
+    },
+  });
 
   return (
-    <>
-      <Head>
-        <title>The Palace</title>
-        <meta name="description" content="urban street culture" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <div className="py-6">
+      {modalOpen && <ItemModal setModalOpen={setModalOpen} refetch={refetch} />}
 
-      <Link href="./signin" target="_blank">
-        signIn
-      </Link>
-      
-      <div>{hello.data ? hello.data.greeting : "Loading tRPC query..."}</div>
+      <main className="bg-green-50 p-2">
+        <Button onClick={() => setModalOpen(true)} text="Add shopping item" />
 
-      <AuthShowcase />
-    </>
+        {items?.length === 0 && <p> the list is empty</p>}
+        <div className="flex flex-col">
+          {!isLoading && items ? (
+            items.map(({ id, name, checked }) => (
+              <div key={id} className="my-2 flex border border-indigo-500 p-2">
+                <input
+                  className="m-2"
+                  type="checkbox"
+                  checked={!!checked}
+                  onChange={() => checkItem({ id, checked: !checked })}
+                ></input>
+
+                <Link className="flex-grow p-2" href={`/detail/${id}`}>
+                  <label className={clsx({ "line-through": !!checked })}>
+                    {name}
+                  </label>
+                </Link>
+
+                <Button onClick={() => deleteItem({ id })} text="Delete" />
+              </div>
+            ))
+          ) : (
+            <p>loading...</p>
+          )}
+        </div>
+      </main>
+    </div>
   );
 };
 
 export default Home;
-
-const AuthShowcase: React.FC = () => {
-  const { data: sessionData } = useSession();
-
-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
-    undefined, // no input
-    { enabled: sessionData?.user !== undefined }
-  );
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <p className="text-center text-2xl text-white">
-        {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-        {secretMessage && <span> - {secretMessage}</span>}
-      </p>
-      <button
-        className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-        onClick={sessionData ? () => void signOut() : () => void signIn()}
-      >
-        {sessionData ? "Sign out" : "Sign in"}
-      </button>
-    </div>
-  );
-};
