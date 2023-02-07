@@ -7,6 +7,7 @@ const Navbar: FC = () => {
       <div className="flex-grow">
         <CustomLink url="/" text="Home" />
         <CustomLink url="/about" text="About" />
+        <CustomLink url="/collection" text="Collection" />
       </div>
       <div>
         <CustomLink url="/signin" text="Admin" />

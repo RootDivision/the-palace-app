@@ -61,6 +61,6 @@ export const itemRouter = createTRPCRouter({
     }),
 
   getSecretMessage: protectedProcedure.query(() => {
-    return "2*mjXX2Sy<D_fbqf";
+    return process.env.DISCOGS_ACCESS_TOKEN;
   }),
 });

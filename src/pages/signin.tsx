@@ -36,7 +36,9 @@ const SignIn = ({ providers }: { providers: AppProps }) => {
           </button>
 
           <div className="text-center text-3xl text-red-600">
-            {secretMessage && <span>SECRET MESSAGE: {secretMessage}</span>}
+            {secretMessage && (
+              <span>Discogs Access Token: {secretMessage}</span>
+            )}
           </div>
         </>
       ) : (
